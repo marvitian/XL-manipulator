@@ -1,0 +1,14 @@
+{
+    "Pin Number" : null,
+    "Net Name (ubmp N7 die)" : null,
+    "Net Name (ubmp HBM3 DRAM)" : null,
+    "Net Name (C4 Bump)" : null,
+    "Net Name (Ballout)" : null,
+    "X Coord (N7 ubmp)" : null,
+    "Y Coord (N7 ubmp)" : null,
+    "X Coord (HBM3 ubmp)" : null,
+    "Y Coord (HBM3 ubmp)" : null,
+    "X Coord (C4 Bump)" : null,
+    "Y Coord (C4 Bump)" : null,
+    "Ballout Number" : null
+}
