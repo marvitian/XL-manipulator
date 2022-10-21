@@ -37,6 +37,14 @@ implicit = {
     "PWRIOL_TST" : "VDDQL_TST"
 }
 
+power = {
+    "VSS" : "VSS",
+    "VDDC" : "VDDC",
+    "VDDQ" : "VDDQ",
+    "VDDQL" : "VDDQL",
+    "VPP" : "VPP"
+}
+
 #EXCEL COLUMN NAMES#
 #   define variables that can easily be changed to handle inconsistencies with varying input files   #
 #       always use these variables when addressing the json items to keep it easily changable        #
@@ -108,7 +116,7 @@ def n7_ball_match(pin_number, net_name_N7, net_name_C4, net_name_Ballout, x_N7, 
 
 
 def make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number):
-    new_dict_element = dict.fromkeys(template_data, None) #create new dictionary from template (template_data is the json.load(file) of template.json)
+    new_dict_element = dict.fromkeys(template_data, "N/A") #create new dictionary from template (template_data is the json.load(file) of template.json)
     new_dict_element["Pin Number"] = pin_number
     new_dict_element["Net Name (ubmp N7 die)"] = net_name_N7
     new_dict_element["Net Name (ubmp HBM3 DRAM)"] = net_name_HBM3
@@ -124,7 +132,7 @@ def make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ball
     n7_out_data.append(new_dict_element)
 
 def make_cell_hbm(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number):
-    new_dict_element = dict.fromkeys(template_data, None) #create new dictionary from template (template_data is the json.load(file) of template.json)
+    new_dict_element = dict.fromkeys(template_data, "N/A") #create new dictionary from template (template_data is the json.load(file) of template.json)
     new_dict_element["Pin Number"] = pin_number
     new_dict_element["Net Name (ubmp N7 die)"] = net_name_N7
     new_dict_element["Net Name (ubmp HBM3 DRAM)"] = net_name_HBM3
@@ -154,9 +162,9 @@ for pin in n7_pinsheet_data:
         y_N7 = pin["Y Coord (design)"]
         x_HBM3 = "N/A"
         y_HBM3 = "N/A"
-        x_C4 = "N/A"
-        y_C4 = "N/A"
-        ballout_number = None
+        x_C4 = None
+        y_C4 = None
+        ballout_number = "N/A"
         make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
 
 out_file = open("n7_output.json", "w")
@@ -171,9 +179,14 @@ for pin in n7_out_data:
         for x,y in ballout.items():
             if( implicit.get( pin["Net Name (ubmp N7 die)"] , 'missing') != 'missing'  ):
                 #find matches with implied connections#
+                #SPECIAL CASE VSS#
+                if pin["Net Name (ubmp N7 die)"] == "GD":
+                    pin["Net Name (ubmp HBM3 DRAM)"] = "VSS"
                 pin["Net Name (C4 Bump)"] = implicit[pin["Net Name (ubmp N7 die)"]]
                 pin["Net Name (Ballout)"] = implicit[pin["Net Name (ubmp N7 die)"]]
                 pin["Ballout Number"] = "N/A"
+                pin["X Coord (C4 Bump)"] = "N/A"
+                pin["Y Coord (C4 Bump)"] = "N/A"
             elif pin["Net Name (ubmp N7 die)"] == y and y != None:
                 ballout_x_value = int(x)                       ###*****####
                 ballout_y_value = ballout["Unnamed: 1"]        ###*****####  ALSO CHANGE IN ADD RELATION ()
@@ -181,18 +194,23 @@ for pin in n7_out_data:
                 pin["Ballout Number"] = ballout_number
                 pin["Net Name (C4 Bump)"] = y
                 pin["Net Name (Ballout)"] = y  
+                pin["X Coord (C4 Bump)"] = None
+                pin["Y Coord (C4 Bump)"] = None
 
 #############################################################################################
 #       HANDLE IMPLICIT RELATIONS HERE                                                      #
 #############################################################################################
 def create_element(nn_d, nn_b, ballout_num):
-    new_dict_element = dict.fromkeys(template_data,None)
+    new_dict_element = dict.fromkeys(template_data,"N/A")
     new_dict_element["Net Name (ubmp N7 die)"] = nn_d
     new_dict_element["Pin Number"] = "N/A"
     new_dict_element["Net Name (Ballout)"] = nn_b
     new_dict_element["Net Name (C4 Bump)"] = nn_b
     new_dict_element["Ballout Number"] = ballout_num
     new_dict_element["Net Name (ubmp HBM3 DRAM)"]= "N/A"
+    ##SPECIAL CASE VSS##
+    if nn_b == "VSS":
+        new_dict_element["Net Name (ubmp HBM3 DRAM)"]= "VSS"
     return new_dict_element
                 
 def add_relation(NN_D, NN_BO, i):
@@ -202,6 +220,28 @@ def add_relation(NN_D, NN_BO, i):
                 ballout_x_value = int(x) 
                 ballout_y_value = ballout["Unnamed: 1"]
                 new_element = create_element(NN_D, NN_BO, "{}{}".format(ballout_y_value , ballout_x_value))
+                n7_out_data.insert(i, new_element)
+
+def create_element_hbm(nn_d, nn_b, ballout_num):
+    new_dict_element = dict.fromkeys(template_data,"N/A")
+    new_dict_element["Net Name (ubmp N7 die)"] = "N/A"
+    ##SPECIAL CASE VSS##
+    if nn_b == "VSS":
+        new_dict_element["Net Name (ubmp N7 die)"] = "GD"
+    new_dict_element["Pin Number"] = "N/A"
+    new_dict_element["Net Name (Ballout)"] = nn_b
+    new_dict_element["Net Name (C4 Bump)"] = nn_b
+    new_dict_element["Ballout Number"] = ballout_num
+    new_dict_element["Net Name (ubmp HBM3 DRAM)"]= nn_d
+    return new_dict_element
+                
+def add_relation_hbm(NN_D, NN_BO, i):
+    for ballout in balloutsheet_data:
+        for x,y in ballout.items():
+            if NN_BO == y:
+                ballout_x_value = int(x) 
+                ballout_y_value = ballout["Unnamed: 1"]
+                new_element = create_element_hbm(NN_D, NN_BO, "{}{}".format(ballout_y_value , ballout_x_value))
                 n7_out_data.insert(i, new_element)
 
 
@@ -216,32 +256,126 @@ for pin in n7_out_data:
 #############################################################################################
 #           deal with hbm3 - n7 relations (may need to move the order)                      #
 #############################################################################################
-t=0
 for mem in hbm3_pinsheet_data:
     for pin in n7_out_data:
-        if pin["Net Name (ubmp N7 die)"] == mem["Net Name"] and mem["Net Name"] != "VSS":
+        if pin["Net Name (ubmp N7 die)"] == mem["Net Name"] and mem["Net Name"] != "VSS":           #the "VSS" should never matter because it will never be in n7, but ill leave here just in case lol
             pin["Net Name (ubmp HBM3 DRAM)"] = mem["Net Name"]
             pin["X Coord (HBM3 ubmp)"] = mem["X Coord (design)"]
             pin["Y Coord (HBM3 ubmp)"] = mem["Y Coord (design)"]
+            pin["X Coord (C4 Bump)"] = "N/A" 
+            pin["Y Coord (C4 Bump)"] = "N/A" 
             mem["Pin Number"] = "x"
+
+
+ 
+#AT THIS POINT N7 - HBM3 AND N7 - BALLOUT IS FILLED OUT
+
+#I NEED TO MAP UNMAPPED HBM PINS TO BALLOUT,
+#   IF I HAVE TIME FILL IN "FLOATING" HBM3 PINS
+t = len(n7_out_data) #index of end of n7 stuff
+for mem in hbm3_pinsheet_data:
+    if mem["Pin Number"] != "x":
+        pin_number = "N/A"
+        net_name_N7 = "N/A"
+        net_name_HBM3 = mem["Net Name"]
+        net_name_C4 = "N/A"
+        net_name_Ballout = "N/A"
+        x_N7 = "N/A"
+        y_N7 = "N/A"
+        x_HBM3 = mem["X Coord (design)"]
+        y_HBM3 = mem["Y Coord (design)"]
+        x_C4 = "N/A"
+        y_C4 = "N/A"
+        ballout_number = "N/A"
+        make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
+          
+for i in range(t, len(n7_out_data)):
     for ballout in balloutsheet_data:
         for x,y in ballout.items():
-            if mem["Net Name"] == y and mem["Pin Number"] != "x" and y != "VSS":
-                pin_number = None
-                net_name_N7 = "N/A"
-                net_name_HBM3 = mem["Net Name"]
-                net_name_C4 = mem["Net Name"]
-                net_name_Ballout = mem["Net Name"]
-                x_N7 = "N/A"
-                y_N7 = "N/A"
-                x_HBM3 = mem["X Coord (design)"]
-                y_HBM3 = mem["Y Coord (design)"]
-                x_C4 = None
-                y_C4 = None
+            if power.get(n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"], "missing") != "missing":
+                ##SPECIAL CASE VSS##
+                if n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"] == "VSS":
+                    n7_out_data[i]["Net Name (ubmp N7 die)"] = "GD"
+                n7_out_data[i]["X Coord (C4 Bump)"] = "N/A"
+                n7_out_data[i]["Y Coord (C4 Bump)"] = "N/A"
+                n7_out_data[i]["Net Name (C4 Bump)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
+                n7_out_data[i]["Net Name (Ballout)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
+                # n7_out_data[i]["Ballout Number"] = "N/A"     #already done above
+            elif n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"] == y and y != None:
+                n7_out_data[i]["X Coord (C4 Bump)"] = None
+                n7_out_data[i]["Y Coord (C4 Bump)"] = None
+                n7_out_data[i]["Net Name (C4 Bump)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
+                n7_out_data[i]["Net Name (Ballout)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
                 ballout_x_value = int(x)                       ###*****####
-                ballout_y_value = ballout["Unnamed: 1"]   
-                ballout_number = "{}{}".format(ballout_y_value,ballout_x_value)
-                make_cell_hbm(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
+                ballout_y_value = ballout["Unnamed: 1"]
+                ballout_number = "{}{}".format(ballout_y_value, ballout_x_value)
+                n7_out_data[i]["Ballout Number"] = ballout_number
+    
+for i in range(t, len(n7_out_data)):
+    if n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"] == "VSS":
+        continue
+    if power.get(n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"], "missing") != "missing":
+        add_relation_hbm(n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"], n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"], i)
+        power.pop(n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"])
+    # for ballout in balloutsheet_data:
+    #     for x,y in ballout.items():
+    #         if mem["Net Name"] == y and mem["Pin Number"] != "x" and y != "VSS":
+    #             pin_number = None
+    #             net_name_N7 = "N/A"
+    #             net_name_HBM3 = mem["Net Name"]
+    #             net_name_C4 = mem["Net Name"]
+    #             net_name_Ballout = mem["Net Name"]
+    #             x_N7 = "N/A"
+    #             y_N7 = "N/A"
+    #             x_HBM3 = mem["X Coord (design)"]
+    #             y_HBM3 = mem["Y Coord (design)"]
+    #             x_C4 = None
+    #             y_C4 = None
+    #             ballout_x_value = int(x)                       ###*****####
+    #             ballout_y_value = ballout["Unnamed: 1"]   
+    #             ballout_number = "{}{}".format(ballout_y_value,ballout_x_value)
+    #             make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
+
+# t = len(n7_out_data)        #length of list before addition (may need to play with index...)
+
+# for mem in hbm3_pinsheet_data:
+#     for ballout in balloutsheet_data:
+#         for x,y in ballout.items():
+#             if power.get(mem["Net Name"], "missing") != "missing":
+#                 pin_number = "N/A"
+#                 net_name_N7 = "N/A"
+#                 net_name_HBM3 = mem["Net Name"]
+#                 net_name_C4 = mem["Net Name"]
+#                 net_name_Ballout = mem["Net Name"]
+#                 x_N7 = "N/A"
+#                 y_N7 = "N/A"
+#                 x_HBM3 = mem["X Coord (design)"]
+#                 y_HBM3 = mem["Y Coord (design)"]
+#                 x_C4 = "N/A"
+#                 y_C4 = "N/A"
+#                 ballout_number = "N/A"
+#                 make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
+#             elif mem["Net Name"] == y and y != None:
+#                 pin_number = "N/A"
+#                 net_name_N7 = "N/A"
+#                 net_name_HBM3 = mem["Net Name"]
+#                 net_name_C4 = mem["Net Name"]
+#                 net_name_Ballout = mem["Net Name"]
+#                 x_N7 = "N/A"
+#                 y_N7 = "N/A"
+#                 x_HBM3 = mem["X Coord (design)"]
+#                 y_HBM3 = mem["Y Coord (design)"]
+#                 x_C4 = None
+#                 y_C4 = None
+#                 ballout_x_value = int(x)                       
+#                 ballout_y_value = ballout["Unnamed: 1"]   
+#                 ballout_number = "{}{}".format(ballout_y_value,ballout_x_value)
+#                 make_cell(pin_number, net_name_N7, net_name_HBM3, net_name_C4, net_name_Ballout, x_N7, y_N7, x_HBM3, y_HBM3, x_C4, y_C4, ballout_number)
+
+
+##insert rows for multiple pin / multiple coords##
+
+
     
 # for mem in hbm3_pinsheet_data:
 #     mem["Pin Number"] = None
@@ -256,5 +390,3 @@ for mem in hbm3_pinsheet_data:
 df = pandas.DataFrame(data=n7_out_data)
 df.to_excel("n7_output_xl.xlsx", index=False, freeze_panes=(1,0))
 
-df = pandas.DataFrame(data=hbm_extras_data)
-df.to_excel("hbm3_mappings_to_ballout.xlsx", index=False, freeze_panes=(1,0))
