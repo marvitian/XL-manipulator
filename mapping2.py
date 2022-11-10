@@ -31,7 +31,7 @@ implicit = {
     "PWRIOC_GPIO" : "VDD_GPIO",
     "PWRIOC_TST" : "VDDIO_TST",
     "PWRIOH" : "VDDQ_OPHY",
-    "PWRIOH_GPIO" : "VDD18",
+    "PWRIOH_GPIO" : "VDDQ_OPHY",
     "PWRIOH_TST" : "VDDQ_TST", 
     "PWRIOL" : "VDDQL_OPHY",
     "PWRIOL_TST" : "VDDQL_TST"
@@ -187,6 +187,7 @@ for pin in n7_out_data:
                 pin["Ballout Number"] = "N/A"
                 pin["X Coord (C4 Bump)"] = "N/A"
                 pin["Y Coord (C4 Bump)"] = "N/A"
+                ballout["Unnamed: 0"] = "x"
             elif pin["Net Name (ubmp N7 die)"] == y and y != None:
                 ballout_x_value = int(x)                       ###*****####
                 ballout_y_value = ballout["Unnamed: 1"]        ###*****####  ALSO CHANGE IN ADD RELATION ()
@@ -196,6 +197,7 @@ for pin in n7_out_data:
                 pin["Net Name (Ballout)"] = y  
                 pin["X Coord (C4 Bump)"] = None
                 pin["Y Coord (C4 Bump)"] = None
+                ballout["Unnamed: 0"] = "x"
 
 #############################################################################################
 #       HANDLE IMPLICIT RELATIONS HERE                                                      #
@@ -243,6 +245,7 @@ def add_relation_hbm(NN_D, NN_BO, i):
                 ballout_y_value = ballout["Unnamed: 1"]
                 new_element = create_element_hbm(NN_D, NN_BO, "{}{}".format(ballout_y_value , ballout_x_value))
                 n7_out_data.insert(i, new_element)
+                ballout["Unnamed: 0"] = "x"
 
 
 i = 0
@@ -300,6 +303,7 @@ for i in range(t, len(n7_out_data)):
                 n7_out_data[i]["Y Coord (C4 Bump)"] = "N/A"
                 n7_out_data[i]["Net Name (C4 Bump)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
                 n7_out_data[i]["Net Name (Ballout)"] = n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"]
+                ballout["Unnamed: 0"] = "x"
                 # n7_out_data[i]["Ballout Number"] = "N/A"     #already done above
             elif n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"] == y and y != None:
                 n7_out_data[i]["X Coord (C4 Bump)"] = None
@@ -310,7 +314,7 @@ for i in range(t, len(n7_out_data)):
                 ballout_y_value = ballout["Unnamed: 1"]
                 ballout_number = "{}{}".format(ballout_y_value, ballout_x_value)
                 n7_out_data[i]["Ballout Number"] = ballout_number
-    
+                ballout["Unnamed: 0"] = "x"
 for i in range(t, len(n7_out_data)):
     if n7_out_data[i]["Net Name (ubmp HBM3 DRAM)"] == "VSS":
         continue
@@ -389,4 +393,8 @@ for i in range(t, len(n7_out_data)):
 
 df = pandas.DataFrame(data=n7_out_data)
 df.to_excel("n7_output_xl.xlsx", index=False, freeze_panes=(1,0))
-
+count = 0
+for ballout in balloutsheet_data:
+    if ballout["Unnamed: 0"] == "x":
+        count += 1
+print(count)
