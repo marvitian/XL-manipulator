@@ -31,7 +31,7 @@ implicit = {
     "PWRIOC_GPIO" : "VDD_GPIO",
     "PWRIOC_TST" : "VDDIO_TST",
     "PWRIOH" : "VDDQ_OPHY",
-    "PWRIOH_GPIO" : "VDD18",
+    "PWRIOH_GPIO" : "VDDQ_OPHY",
     "PWRIOH_TST" : "VDDQ_TST", 
     "PWRIOL" : "VDDQL_OPHY",
     "PWRIOL_TST" : "VDDQL_TST"
@@ -383,9 +383,9 @@ for i in range(t, len(n7_out_data)):
 #           output to file                      
 #############################################################################################
 
-# out_file = open("n7_output.json", "w")
-# json.dump(n7_out_data, out_file)
-# out_file.close()
+out_file = open("n7_output.json", "w")
+json.dump(n7_out_data, out_file)
+out_file.close()
 
 df = pandas.DataFrame(data=n7_out_data)
 df.to_excel("n7_output_xl.xlsx", index=False, freeze_panes=(1,0))
