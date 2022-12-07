@@ -1,0 +1,12 @@
+(1) anything in this group appears more than once in the N7 netlist but only once on the matrix so it is reused
+
+
+(2) vddq_ophy is used multiple times because it is mapped to twice in implicit
+
+(3) appears to be for the same reason as (1) 
+
+
+
+
+
+second group of vss is their because it is from the floating hbm3 pins

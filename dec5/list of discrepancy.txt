@@ -1,0 +1,84 @@
+################################################################################
+CHANGES TO BE MADE TO BALLOUT MATRIX
+
+before:
+
+
+unmatched ballout: A15     ATSTG
+unmatched ballout: A16     ATSTC
+unmatched ballout: A17     ATSTO
+unmatched ballout: A18     ATSTK
+unmatched ballout: G1     STRPPLLPD
+unmatched ballout: G2     STRPPLLCLK
+unmatched ballout: G3     STRP1E0TC
+unmatched ballout: H1     PARPRD
+unmatched ballout: H2     SHFTDREXT
+unmatched ballout: H3     UPDDREXT
+unmatched ballout: J1     CPTDREXT
+unmatched ballout: J3     PARTDR
+unmatched ballout: AJ13     TST3_CK_T
+unmatched ballout: AJ14     TST3_CK_C
+unmatched ballout: AK7     TST2_WDQS_T
+unmatched ballout: AK8     TST2_WDQS_C
+unmatched ballout: AK20     ATSTH
+unmatched ballout: AK21     ATSTD
+unmatched ballout: AK22     ATSTP
+unmatched ballout: AK23     ATSTL
+
+
+after: 
+
+A15     ATSTg
+A16     ATSTc
+A17     ATSTo
+A18     ATSTk
+G1     StrpPLLPD
+G2     StrpPLLClk
+G3     Strp1E0TC
+H1     ParPrD
+H2     ShftDrExt
+H3     UpdDrExt
+J1     CptDrExt
+J3     ParTdr
+AJ13     TST3_CK_t
+AJ14     TST3_CK_c
+AK7     TST2_WDQS_t
+AK8     TST2_WDQS_c
+AK20     ATSTh
+AK21     ATSTd
+AK22     ATSTp
+AK23     ATSTl
+
+################################################################################
+
+
+
+
+
+lines in new : 13394
+lines in old : 13393 
+
+this is why- was one removed in wake for something else? because an additional row is added for each vss..
+vss rows : 
+5374 new
+5373 old
+
+##################################
+(these are the expected ones, theres no difference here, you can ignore this)
+
+before: 
+unmatched ballout: J12     TST_VDDQL_OPHY
+unmatched ballout: J13     TST_VSS1
+unmatched ballout: K12     TST_VDDIO_OPHY
+unmatched ballout: K13     TST_VSS2
+unmatched ballout: AA12     TST_VDDQ_OPHY
+unmatched ballout: AA13     TST_VSS3
+
+after:
+unmatched ballout: J12     TST_VDDQL_OPHY
+unmatched ballout: J13     TST_VSS1
+unmatched ballout: K12     TST_VDDIO_OPHY
+unmatched ballout: K13     TST_VSS2
+unmatched ballout: AA12     TST_VDDQ_OPHY
+unmatched ballout: AA13     TST_VSS3
+##################################
